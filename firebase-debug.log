@@ -1,0 +1,30 @@
+[debug] [2025-05-05T13:38:47.563Z] ----------------------------------------------------------------------
+[debug] [2025-05-05T13:38:47.575Z] Command:       /Users/kaemzy/.nvm/versions/node/v18.20.7/bin/node /Users/kaemzy/.nvm/versions/node/v18.20.7/bin/firebase init
+[debug] [2025-05-05T13:38:47.576Z] CLI Version:   13.35.1
+[debug] [2025-05-05T13:38:47.576Z] Platform:      darwin
+[debug] [2025-05-05T13:38:47.577Z] Node Version:  v18.20.7
+[debug] [2025-05-05T13:38:47.749Z] Time:          Mon May 05 2025 14:38:47 GMT+0100 (West Africa Standard Time)
+[debug] [2025-05-05T13:38:47.750Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-05-05T13:38:47.801Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-05-05T13:38:47.939Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-05-05T13:38:47.940Z] > authorizing via signed-in user (kaemzythompson@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/kaemzy/AndroidStudioProjects/tutoringapp
+
+[debug] [2025-05-05T13:38:49.636Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-05-05T13:38:49.636Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-05-05T14:07:31.803Z] Error: Timed out.
+    at Timeout._onTimeout (/Users/kaemzy/.nvm/versions/node/v18.20.7/lib/node_modules/firebase-tools/lib/utils.js:269:49)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7)
+[error] 
+[error] Error: An unexpected error has occurred.
