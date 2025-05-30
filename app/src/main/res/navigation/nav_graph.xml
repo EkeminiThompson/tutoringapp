@@ -1,53 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/signupFragment">
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.tutoringapp.LoginFragment"
+        android:label="Login">
+        <action
+            android:id="@+id/action_loginFragment_to_signupFragment"
+            app:destination="@id/signupFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/signupFragment"
         android:name="com.example.tutoringapp.SignupFragment"
-        android:label="Sign Up" >
+        android:label="Sign Up">
         <action
             android:id="@+id/action_signupFragment_to_teacherProfileFragment"
             app:destination="@id/teacherProfileFragment" />
         <action
             android:id="@+id/action_signupFragment_to_dashboardFragment"
-            app:destination="@id/dashboardFragment" />
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/signupFragment"
+            app:popUpToInclusive="true" />
+        <!-- ✅ Missing action added here -->
+        <action
+            android:id="@+id/action_signupFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/signupFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/teacherProfileFragment"
         android:name="com.example.tutoringapp.TeacherProfileFragment"
-        android:label="Teacher Profile" >
+        android:label="Teacher Profile">
         <action
             android:id="@+id/action_teacherProfileFragment_to_dashboardFragment"
-            app:destination="@id/dashboardFragment" />
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/teacherProfileFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
-        android:id="@+id/dashboardFragment"
-        android:name="com.example.tutoringapp.DashboardFragment"
-        android:label="Dashboard" >
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.tutoringapp.EditProfileFragment"
+        android:label="Edit Profile">
         <action
-            android:id="@+id/action_dashboardFragment_to_profileFragment"
-            app:destination="@id/profileFragment" />
-        <action
-            android:id="@+id/action_dashboardFragment_to_chatFragment"
-            app:destination="@id/chatFragment" />
+            android:id="@+id/action_editProfileFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/editProfileFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.tutoringapp.ProfileFragment"
-        android:label="Profile" >
+        android:label="Profile">
+        <argument
+            android:name="userId"
+            app:argType="string" />
         <action
             android:id="@+id/action_profileFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_bookingFragment"
+            app:destination="@id/bookingFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.tutoringapp.DashboardFragment"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboardFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookingFragment"
+        android:name="com.example.tutoringapp.BookingFragment"
+        android:label="Booking">
+        <argument
+            android:name="teacherId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_bookingFragment_to_bookingHistoryFragment"
+            app:destination="@id/bookingHistoryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookingHistoryFragment"
+        android:name="com.example.tutoringapp.BookingHistoryFragment"
+        android:label="Booking History" />
 
     <fragment
         android:id="@+id/chatFragment"
         android:name="com.example.tutoringapp.ChatFragment"
-        android:label="Chat" />
+        android:label="Chat">
+        <argument
+            android:name="teacherId"
+            app:argType="string" />
+        <!-- ✅ Missing action added here -->
+        <action
+            android:id="@+id/action_chatFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/chatFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.tutoringapp.SettingsFragment"
+        android:label="Settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
 </navigation>

@@ -1,5 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!-- res/values/themes.xml -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Tutoringapp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
 
-    <style name="Theme.Tutoringapp" parent="android:Theme.Material.Light.NoActionBar" />
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Widget.Tutoringapp.Button</item>
+        <item name="textAppearanceButton">@style/TextAppearance.Tutoringapp.Button</item>
+    </style>
 </resources>

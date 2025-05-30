@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">tutoringapp</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="teacher">Teacher</string>
+    <string name="student_parent">Student/Parent</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="subjects_comma_separated">Subjects (comma-separated)</string>
+    <string name="time_slots_comma_separated_e_g_10_00_11_00">Time Slots (comma-separated, e.g., 10:00-11:00)</string>
+    <string name="bio">Bio</string>
+    <string name="save_profile">Save Profile</string>
+    <string name="start_chat">Start Chat</string>
+    <string name="type_a_message">Type a message</string>
+    <string name="send">Send</string>
+    <string name="subject">Subject</string>
+    <string name="apply_filter">Apply Filter</string>
+    <string name="filter_teachers">Filter Teachers</string>
+
+    <string name="select_date">Select a date</string>
+    <string name="save_profile_button">Button to save profile</string>
+
+    <string name="calendar_description">Calendar for selecting date</string>
+    <string name="action_save_profile">Save profile button</string>
+    <string name="login">Login</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="upload_photo">Upload Photo</string>
+    <string name="todo">TODO</string>
+    <string name="bio_hint">text</string>
+    <string name="teacher_availability">Teacher Availability</string>
+    <string name="date_yyyy_mm_dd">Date (YYYY-MM-DD)</string>
+    <string name="time_slot_e_g_10_00_11_00">Time Slot (e.g., 10:00-11:00)</string>
+    <string name="request_booking">Request Booking</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="notifications">Notifications</string>
+    <string name="logout">Logout</string>
+    <string name="submit_rating">Submit Rating</string>
+    <string name="comment_optional">Comment (optional)</string>
+    <string name="confirm">Confirm</string>
+    <string name="complete">Complete</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_availability">Add Availability</string>
+
+    <string name="book_now">Book Now</string>
+    <string name="rate_teacher">Rate Teacher</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="bookings">Bookings</string>
+    <string name="chats">Chats</string>
+    <string name="settings">Settings</string>
+
 </resources>

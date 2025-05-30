@@ -6,23 +6,29 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <RatingBar
+        android:id="@+id/rateRatingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:numStars="5"
+        android:stepSize="1" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/subject">
-
+        android:hint="@string/comment_optional">
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/filterSubjectEditText"
+            android:id="@+id/commentEditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColorHint="#616161" />
+            android:layout_height="wrap_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/applyFilterButton"
+        android:id="@+id/submitRatingButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/apply_filter"
+        android:text="@string/submit_rating"
         android:layout_marginTop="16dp" />
 
 </LinearLayout>

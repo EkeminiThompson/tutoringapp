@@ -1,57 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Subjects (comma-separated)">
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Subjects Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/subjectsLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/subjects_comma_separated"
+            app:counterEnabled="true"
+            app:counterMaxLength="100"
+            app:layout_constraintTop_toBottomOf="@id/progressBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/subjectsEditText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:importantForAutofill="yes" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Calendar View -->
         <CalendarView
             android:id="@+id/calendarView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
+            android:layout_width="0dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp"
+            android:contentDescription="@string/calendar_description"
+            app:layout_constraintTop_toBottomOf="@id/subjectsLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
+        <!-- Time Slots Input -->
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+            android:id="@+id/timeSlotsLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Time Slots (comma-separated, e.g., 10:00-11:00)">
+            android:layout_marginTop="16dp"
+            android:hint="@string/time_slots_comma_separated_e_g_10_00_11_00"
+            app:counterEnabled="true"
+            app:counterMaxLength="50"
+            app:layout_constraintTop_toBottomOf="@id/calendarView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/timeSlotsEditText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:importantForAutofill="yes" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+        <!-- Add Availability Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addAvailabilityButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Bio">
+            android:text="@string/add_availability"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/timeSlotsLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Bio Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/bioLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/bio"
+            app:layout_constraintTop_toBottomOf="@id/addAvailabilityButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/bioEditText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="120dp"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:maxLines="5"
+                android:minLines="3"
+                android:importantForAutofill="yes"
+                android:textColorHint="#616161" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Save Profile Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/saveProfileButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Save Profile"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            android:text="@string/save_profile"
+            app:cornerRadius="8dp"
+            app:layout_constraintTop_toBottomOf="@id/bioLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:contentDescription="@string/action_save_profile" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
