@@ -9,4 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="dark_icon_color">#424242</color>  <!-- Dark gray -->
     <color name="dark_border_color">#212121</color>  <!-- Darker gray -->
+
+    <color name="rating_unselected">#E0E0E0</color> <!-- Light gray for unselected stars -->
+    <color name="rating_selected">#FFC107</color> <!-- Amber for selected stars -->
+
 </resources>

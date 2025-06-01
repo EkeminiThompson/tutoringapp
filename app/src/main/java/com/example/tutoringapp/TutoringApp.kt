@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -57,7 +60,7 @@ class TutoringApp : Application() {
 
 class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
-    private val TAG = "MainActivity"
+    private val tag = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +83,8 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.nav_chats -> {
-                        Toast.makeText(this, "Select a teacher to start a chat", Toast.LENGTH_SHORT).show()
-                        false
+                        navController.navigate(R.id.chatListFragment)
+                        true
                     }
                     R.id.nav_settings -> {
                         navController.navigate(R.id.settingsFragment)
@@ -90,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                     else -> false
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Navigation error: ${e.message}", e)
+                Log.e(tag, "Navigation error: ${e.message}", e)
                 Toast.makeText(this, "Navigation failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 false
             }
@@ -121,7 +124,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Notification permission granted")
+                Log.d(tag, "Notification permission granted")
             } else {
                 Toast.makeText(this, "Notification permission denied", Toast.LENGTH_SHORT).show()
             }
@@ -235,7 +238,7 @@ class LoginFragment : Fragment() {
 class SignupFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
-    private val TAG = "SignupFragment"
+    private val tag = "SignupFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -277,7 +280,6 @@ class SignupFragment : Fragment() {
                                 name = name,
                                 role = role
                             )
-                            // Retry user document creation up to 3 times
                             saveUserWithRetry(user, 3, progressBar, role)
                         } else {
                             progressBar.visibility = View.GONE
@@ -296,7 +298,7 @@ class SignupFragment : Fragment() {
         db.collection("users").document(user.uid).set(user)
             .addOnSuccessListener {
                 progressBar.visibility = View.GONE
-                Log.d(TAG, "User document created for UID: ${user.uid}")
+                Log.d(tag, "User document created for UID: ${user.uid}")
                 findNavController().navigate(
                     if (role == "Teacher") R.id.action_signupFragment_to_teacherProfileFragment
                     else R.id.action_signupFragment_to_dashboardFragment
@@ -304,13 +306,13 @@ class SignupFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 if (retries > 0) {
-                    Log.w(TAG, "Failed to save user document, retrying... ($retries retries left): ${e.message}")
+                    Log.w(tag, "Failed to save user document, retrying... ($retries retries left): ${e.message}")
                     saveUserWithRetry(user, retries - 1, progressBar, role)
                 } else {
                     progressBar.visibility = View.GONE
-                    Log.e(TAG, "Failed to save user document after retries: ${e.message}", e)
+                    Log.e(tag, "Failed to save user document after retries: ${e.message}", e)
                     Toast.makeText(context, "Failed to save user data: ${e.message}", Toast.LENGTH_SHORT).show()
-                    auth.signOut() // Sign out to prevent partial state
+                    auth.signOut()
                     findNavController().navigate(R.id.action_signupFragment_to_loginFragment)
                 }
             }
@@ -496,7 +498,7 @@ class ProfileFragment : Fragment() {
         val bioTextView = view.findViewById<TextView>(R.id.profileBioTextView)
         val subjectsTextView = view.findViewById<TextView>(R.id.profileSubjectsTextView)
         val availabilityTextView = view.findViewById<TextView>(R.id.profileAvailabilityTextView)
-        val ratingBar = view.findViewById<RatingBar>(R.id.profileRatingBar)
+        val profileRatingBar = view.findViewById<RatingBar>(R.id.profileRatingBar) // Renamed
         val photoImageView = view.findViewById<ImageView>(R.id.profilePhotoImageView)
         val chatButton = view.findViewById<Button>(R.id.startChatButton)
         val bookButton = view.findViewById<Button>(R.id.bookButton)
@@ -522,7 +524,7 @@ class ProfileFragment : Fragment() {
                 } else {
                     "No availability"
                 }
-                ratingBar.rating = user.averageRating
+                profileRatingBar.rating = user.averageRating // Updated reference
                 if (user.profilePhotoUrl != null) {
                     Glide.with(this).load(user.profilePhotoUrl).into(photoImageView)
                 }
@@ -535,36 +537,7 @@ class ProfileFragment : Fragment() {
                     findNavController().navigate(R.id.action_profileFragment_to_bookingFragment, bundle)
                 }
                 rateButton.setOnClickListener {
-                    val dialog = Dialog(requireContext())
-                    dialog.setContentView(R.layout.dialog_rate)
-                    val ratingBar = dialog.findViewById<RatingBar>(R.id.rateRatingBar)
-                    val commentEditText = dialog.findViewById<EditText>(R.id.commentEditText)
-                    dialog.findViewById<Button>(R.id.submitRatingButton).setOnClickListener {
-                        val rating = ratingBar.rating.toInt()
-                        val comment = commentEditText.text.toString().trim()
-                        if (rating > 0) {
-                            val ratingObj = Rating(
-                                id = db.collection("ratings").document().id,
-                                studentId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                                teacherId = userId,
-                                rating = rating,
-                                comment = comment,
-                                timestamp = System.currentTimeMillis()
-                            )
-                            db.collection("ratings").document(ratingObj.id).set(ratingObj)
-                                .addOnSuccessListener {
-                                    updateTeacherRating(userId)
-                                    Toast.makeText(context, "Rating submitted", Toast.LENGTH_SHORT).show()
-                                    dialog.dismiss()
-                                }
-                                .addOnFailureListener {
-                                    Toast.makeText(context, "Failed to submit rating", Toast.LENGTH_SHORT).show()
-                                }
-                        } else {
-                            Toast.makeText(context, "Please select a rating", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    dialog.show()
+                    showRatingDialog(userId)
                 }
             }
             .addOnFailureListener {
@@ -573,6 +546,39 @@ class ProfileFragment : Fragment() {
             }
 
         return view
+    }
+
+    private fun showRatingDialog(teacherId: String) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_rate)
+        val dialogRatingBar = dialog.findViewById<RatingBar>(R.id.rateRatingBar) // Renamed
+        val commentEditText = dialog.findViewById<EditText>(R.id.commentEditText)
+        dialog.findViewById<Button>(R.id.submitRatingButton).setOnClickListener {
+            val rating = dialogRatingBar.rating.toInt() // Updated reference
+            val comment = commentEditText.text.toString().trim()
+            if (rating > 0) {
+                val ratingObj = Rating(
+                    id = db.collection("ratings").document().id,
+                    studentId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                    teacherId = teacherId,
+                    rating = rating,
+                    comment = comment,
+                    timestamp = System.currentTimeMillis()
+                )
+                db.collection("ratings").document(ratingObj.id).set(ratingObj)
+                    .addOnSuccessListener {
+                        updateTeacherRating(teacherId)
+                        Toast.makeText(context, "Rating submitted", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(context, "Failed to submit rating", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                Toast.makeText(context, "Please select a rating", Toast.LENGTH_SHORT).show()
+            }
+        }
+        dialog.show()
     }
 
     private fun updateTeacherRating(teacherId: String) {
@@ -795,7 +801,7 @@ class BookingHistoryFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: BookingAdapter
     private lateinit var progressBar: ProgressBar
-    private val TAG = "BookingHistoryFragment"
+    private val tag = "BookingHistoryFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -824,12 +830,12 @@ class BookingHistoryFragment : Fragment() {
                 val query = if (userRole == "Teacher") {
                     db.collection("bookings").whereEqualTo("teacherId", userId)
                 } else {
-                    db.collection("users").whereEqualTo("studentId", userId)
+                    db.collection("bookings").whereEqualTo("studentId", userId)
                 }
                 query.addSnapshotListener { snapshot, e ->
                     progressBar.visibility = View.GONE
                     if (e != null) {
-                        Log.e(TAG, "Failed to load bookings: ${e.message}", e)
+                        Log.e(tag, "Failed to load bookings: ${e.message}", e)
                         Toast.makeText(context, "Failed to load bookings: ${e.message}", Toast.LENGTH_SHORT).show()
                         return@addSnapshotListener
                     }
@@ -839,7 +845,7 @@ class BookingHistoryFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 progressBar.visibility = View.GONE
-                Log.e(TAG, "Failed to load user role: ${e.message}", e)
+                Log.e(tag, "Failed to load user role: ${e.message}", e)
                 Toast.makeText(context, "Failed to load user data", Toast.LENGTH_SHORT).show()
             }
 
@@ -926,139 +932,216 @@ class BookingAdapter(
 
 class ChatFragment : Fragment() {
     private lateinit var db: FirebaseFirestore
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: MessageAdapter
-    private lateinit var progressBar: ProgressBar
-    private val TAG = "ChatFragment"
+    private var recyclerView: RecyclerView? = null
+    private var adapter: MessageAdapter? = null
+    private var progressBar: ProgressBar? = null
+    private val tag = "ChatFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_chat, container, false)
-        db = FirebaseFirestore.getInstance()
-        recyclerView = view.findViewById(R.id.chatRecyclerView)
-        progressBar = view.findViewById(R.id.progressBar)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = MessageAdapter()
-        recyclerView.adapter = adapter
+        try {
+            val view = inflater.inflate(R.layout.fragment_chat, container, false)
+            db = FirebaseFirestore.getInstance()
 
-        val teacherId = arguments?.getString("teacherId") ?: run {
-            Toast.makeText(context, "Teacher ID missing", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-            return view
-        }
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            Log.e(TAG, "User not authenticated")
-            Toast.makeText(context, "Please log in to send messages", Toast.LENGTH_SHORT).show()
-            findNavController().navigate(R.id.action_chatFragment_to_loginFragment)
-            return view
-        }
-        if (teacherId.isEmpty()) {
-            Log.e(TAG, "Invalid teacherId: empty")
-            Toast.makeText(context, "Invalid teacher ID", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-            return view
-        }
-        val chatId = if (userId < teacherId) "${userId}_${teacherId}" else "${teacherId}_${userId}"
-        Log.d(TAG, "Chat ID: $chatId, User ID: $userId, Teacher ID: $teacherId")
-
-        // Check if user document exists
-        progressBar.visibility = View.VISIBLE
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener { document ->
-                if (!document.exists()) {
-                    progressBar.visibility = View.GONE
-                    Log.e(TAG, "User document does not exist for UID: $userId")
-                    Toast.makeText(context, "User profile not found. Please sign up again.", Toast.LENGTH_SHORT).show()
-                    FirebaseAuth.getInstance().signOut()
-                    findNavController().navigate(R.id.action_chatFragment_to_loginFragment)
-                    return@addOnSuccessListener
+            recyclerView = view.findViewById(R.id.chatRecyclerView)
+            progressBar = view.findViewById(R.id.progressBar)
+            if (recyclerView == null || progressBar == null) {
+                Log.e(tag, "RecyclerView or ProgressBar is null, check fragment_chat.xml for R.id.chatRecyclerView and R.id.progressBar")
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Error: UI components missing", Toast.LENGTH_SHORT).show()
                 }
+                return view
+            }
 
-                // Ensure parent chat document exists
-                db.collection("chats").document(chatId).set(mapOf("created" to System.currentTimeMillis()))
-                    .addOnSuccessListener {
-                        Log.d(TAG, "Parent chat document created for chatId: $chatId")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w(TAG, "Failed to create parent chat document: ${e.message}", e)
+            recyclerView?.layoutManager = LinearLayoutManager(context)
+            adapter = MessageAdapter()
+            recyclerView?.adapter = adapter
+            Log.d(tag, "Adapter set for RecyclerView")
+
+            val teacherId = arguments?.getString("teacherId") ?: run {
+                if (isAdded) {
+                    Log.e(tag, "Teacher ID missing in arguments")
+                    Toast.makeText(requireContext(), "Teacher ID missing", Toast.LENGTH_SHORT).show()
+                    findNavController().popBackStack()
+                }
+                return view
+            }
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: run {
+                Log.e(tag, "User not authenticated")
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Please log in to send messages", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_chatFragment_to_loginFragment)
+                }
+                return view
+            }
+            if (teacherId.isEmpty()) {
+                Log.e(tag, "Invalid teacherId: empty")
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Invalid teacher ID", Toast.LENGTH_SHORT).show()
+                    findNavController().popBackStack()
+                }
+                return view
+            }
+            val chatId = if (userId < teacherId) "${userId}_${teacherId}" else "${teacherId}_${userId}"
+            Log.d(tag, "Chat ID: $chatId, User ID: $userId, Teacher ID: $teacherId")
+
+            progressBar?.visibility = View.VISIBLE
+            db.collection("users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    if (!isAdded) return@addOnSuccessListener
+                    if (!document.exists()) {
+                        progressBar?.visibility = View.GONE
+                        Log.e(tag, "User document does not exist for UID: $userId")
+                        Toast.makeText(requireContext(), "User profile not found. Please sign up again.", Toast.LENGTH_SHORT).show()
+                        FirebaseAuth.getInstance().signOut()
+                        findNavController().navigate(R.id.action_chatFragment_to_loginFragment)
+                        return@addOnSuccessListener
                     }
 
-                // Load messages
-                db.collection("chats").document(chatId).collection("messages")
-                    .orderBy("timestamp", Query.Direction.ASCENDING)
-                    .addSnapshotListener { snapshot, e ->
-                        progressBar.visibility = View.GONE
-                        if (e != null) {
-                            Log.e(TAG, "Failed to load messages: ${e.message}", e)
-                            Toast.makeText(context, "Failed to load messages: ${e.message}", Toast.LENGTH_SHORT).show()
-                            return@addSnapshotListener
+                    db.collection("chats").document(chatId).set(mapOf(
+                        "created" to System.currentTimeMillis(),
+                        "participants" to listOf(userId, teacherId)
+                    ))
+                        .addOnSuccessListener {
+                            Log.d(tag, "Parent chat document created for chatId: $chatId")
                         }
-                        val messages = snapshot?.toObjects(Message::class.java) ?: emptyList()
-                        adapter.submitList(messages)
-                        recyclerView.scrollToPosition(messages.size - 1)
-                    }
-            }
-            .addOnFailureListener { e ->
-                progressBar.visibility = View.GONE
-                Log.e(TAG, "Failed to check user document: ${e.message}", e)
-                Toast.makeText(context, "Failed to verify user profile: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+                        .addOnFailureListener { e ->
+                            Log.w(tag, "Failed to create parent chat document: ${e.message}", e)
+                        }
 
-        val messageEditText = view.findViewById<EditText>(R.id.messageEditText)
-        view.findViewById<Button>(R.id.sendButton).setOnClickListener {
-            val content = messageEditText.text.toString().trim()
-            if (content.isEmpty()) {
-                Toast.makeText(context, "Message cannot be empty", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            progressBar.visibility = View.VISIBLE
-            val message = Message(
-                senderId = userId,
-                receiverId = teacherId,
-                content = content,
-                timestamp = System.currentTimeMillis()
-            )
-            Log.d(TAG, "Sending message: senderId=$userId, receiverId=$teacherId, chatId=$chatId")
-            db.collection("chats").document(chatId).collection("messages")
-                .add(message)
-                .addOnSuccessListener {
-                    progressBar.visibility = View.GONE
-                    messageEditText.text.clear()
-                    recyclerView.scrollToPosition(adapter.itemCount - 1)
-                    Log.d(TAG, "Message sent successfully")
+                    Log.d(tag, "Setting up snapshot listener for chatId: $chatId")
+                    db.collection("chats").document(chatId).collection("messages")
+                        .orderBy("timestamp", Query.Direction.ASCENDING)
+                        .addSnapshotListener { snapshot, e ->
+                            progressBar?.visibility = View.GONE
+                            if (!isAdded) return@addSnapshotListener
+                            if (e != null) {
+                                Log.e(tag, "Failed to load messages: ${e.message}, chatId=$chatId, userId=$userId", e)
+                                Toast.makeText(requireContext(), "Failed to retrieve messages: ${e.message}", Toast.LENGTH_LONG).show()
+                                return@addSnapshotListener
+                            }
+                            val messages = snapshot?.toObjects(Message::class.java) ?: emptyList()
+                            Log.d(tag, "Retrieved ${messages.size} messages for chatId: $chatId")
+                            if (adapter != null && recyclerView != null) {
+                                adapter?.submitList(messages)
+                                if (messages.isNotEmpty()) {
+                                    recyclerView?.scrollToPosition(messages.size - 1)
+                                }
+                            } else {
+                                Log.e(tag, "Adapter or RecyclerView is null during snapshot update")
+                            }
+                        }
                 }
                 .addOnFailureListener { e ->
-                    progressBar.visibility = View.GONE
-                    Log.e(TAG, "Failed to send message: ${e.message}, chatId=$chatId, userId=$userId", e)
-                    Toast.makeText(context, "Failed to send message: ${e.message}", Toast.LENGTH_SHORT).show()
+                    if (!isAdded) return@addOnFailureListener
+                    progressBar?.visibility = View.GONE
+                    Log.e(tag, "Failed to verify user document for UID: $userId, ${e.message}", e)
+                    Toast.makeText(requireContext(), "Failed to verify user: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
-        }
 
-        return view
+            val messageEditText = view.findViewById<EditText>(R.id.messageEditText)
+            val sendButton = view.findViewById<Button>(R.id.sendButton)
+            if (sendButton == null) {
+                Log.e(tag, "sendButton is null, check fragment_chat.xml for R.id.sendButton")
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Error: Send button missing", Toast.LENGTH_SHORT).show()
+                }
+                return view
+            }
+            sendButton.setOnClickListener {
+                if (!isAdded) return@setOnClickListener
+                try {
+                    if (messageEditText == null) {
+                        Log.e(tag, "messageEditText is null, check fragment_chat.xml for R.id.messageEditText")
+                        Toast.makeText(requireContext(), "Error: Message input not found", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    val content = messageEditText.text.toString().trim()
+                    if (content.isEmpty()) {
+                        Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    progressBar?.visibility = View.VISIBLE
+                    val message = Message(
+                        senderId = userId,
+                        receiverId = teacherId,
+                        content = content,
+                        timestamp = System.currentTimeMillis()
+                    )
+                    Log.d(tag, "Sending message: senderId=${message.senderId}, receiverId=${message.receiverId}, content=${message.content}, timestamp=${message.timestamp}, chatId=$chatId")
+                    db.collection("chats").document(chatId).collection("messages")
+                        .add(message)
+                        .addOnSuccessListener {
+                            if (!isAdded) return@addOnSuccessListener
+                            progressBar?.visibility = View.GONE
+                            messageEditText.text.clear()
+                            if (adapter != null && adapter!!.itemCount > 0) {
+                                recyclerView?.scrollToPosition(adapter!!.itemCount - 1)
+                            }
+                            Log.d(tag, "Message sent successfully to chatId: $chatId")
+                        }
+                        .addOnFailureListener { e ->
+                            if (!isAdded) return@addOnFailureListener
+                            progressBar?.visibility = View.GONE
+                            Log.e(tag, "Failed to send message: ${e.message}, chatId=$chatId, userId=$userId", e)
+                            Toast.makeText(requireContext(), "Failed to send message: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } catch (e: Exception) {
+                    if (isAdded) {
+                        progressBar?.visibility = View.GONE
+                        Log.e(tag, "ChatFragment send message crashed: ${e.message}, chatId=$chatId, userId=$userId", e)
+                        Toast.makeText(requireContext(), "Error sending message", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            return view
+        } catch (e: Exception) {
+            Log.e(tag, "ChatFragment onCreateView crashed: ${e.message}", e)
+            if (isAdded) {
+                Toast.makeText(requireContext(), "Error loading chat", Toast.LENGTH_SHORT).show()
+            }
+            return null
+        }
     }
 }
 
 class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
     private var messages: List<Message> = emptyList()
+    private val tag = "MessageAdapter"
 
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val messageTextView: TextView = itemView.findViewById(R.id.messageTextView)
-        val cardView: CardView = itemView.findViewById(R.id.messageCardView)
+        val messageTextView: TextView? = itemView.findViewById(R.id.messageTextView)
+        val cardView: CardView? = itemView.findViewById(R.id.messageCardView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        val layout = if (viewType == 0) R.layout.item_message_sent else R.layout.item_message_received
-        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
-        return MessageViewHolder(view)
+        try {
+            val layout = if (viewType == 0) R.layout.item_message_sent else R.layout.item_message_received
+            Log.d(tag, "Inflating layout for viewType=$viewType, layout=${if (viewType == 0) "item_message_sent" else "item_message_received"}")
+            val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+            return MessageViewHolder(view)
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to create ViewHolder for viewType=$viewType: ${e.message}", e)
+            throw e
+        }
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        val message = messages[position]
-        holder.messageTextView.text = message.content
-        holder.cardView.cardElevation = if (message.senderId == FirebaseAuth.getInstance().currentUser?.uid) 4f else 2f
+        try {
+            val message = messages[position]
+            if (holder.messageTextView == null || holder.cardView == null) {
+                Log.e(tag, "messageTextView or cardView is null at position=$position, message.senderId=${message.senderId}, layout=${if (message.senderId == FirebaseAuth.getInstance().currentUser?.uid) "item_message_sent" else "item_message_received"}")
+                return
+            }
+            holder.messageTextView.text = message.content
+            holder.cardView.cardElevation = if (message.senderId == FirebaseAuth.getInstance().currentUser?.uid) 4f else 2f
+            Log.d(tag, "Bound message at position=$position, content=${message.content}")
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to bind ViewHolder at position=$position: ${e.message}", e)
+        }
     }
 
     override fun getItemCount(): Int = messages.size
@@ -1069,10 +1152,15 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() 
     }
 
     fun submitList(newMessages: List<Message>) {
-        val diffCallback = MessageDiffCallback(messages, newMessages)
-        val diffResult = DiffUtil.calculateDiff(diffCallback)
-        messages = newMessages.toList()
-        diffResult.dispatchUpdatesTo(this)
+        try {
+            Log.d(tag, "Submitting ${newMessages.size} messages")
+            val diffCallback = MessageDiffCallback(messages, newMessages)
+            val diffResult = DiffUtil.calculateDiff(diffCallback)
+            messages = newMessages.toList()
+            diffResult.dispatchUpdatesTo(this)
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to submit list: ${e.message}", e)
+        }
     }
 
     private class MessageDiffCallback(
@@ -1094,7 +1182,7 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() 
 class SettingsFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
-    private val TAG = "SettingsFragment"
+    private val tag = "SettingsFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -1104,53 +1192,76 @@ class SettingsFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        val editProfileButton = view.findViewById<Button>(R.id.editProfileButton)
-        val notificationsToggle = view.findViewById<android.widget.Switch>(R.id.notificationsToggle)
-        val logoutButton = view.findViewById<Button>(R.id.logoutButton)
+        try {
+            val editProfileButton = view.findViewById<Button>(R.id.editProfileButton)
+            val notificationsToggle = view.findViewById<SwitchCompat>(R.id.notificationsToggle)
+            val logoutButton = view.findViewById<Button>(R.id.logoutButton)
 
-        val userId = auth.currentUser?.uid ?: run {
-            Log.e(TAG, "User not authenticated")
-            findNavController().navigate(R.id.action_settingsFragment_to_loginFragment)
-            return view
-        }
-
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener { document ->
-                val user = document.toObject(User::class.java)
-                notificationsToggle.isChecked = user?.fcmToken != null
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to load user data: ${e.message}", e)
-                Toast.makeText(context, "Failed to load settings", Toast.LENGTH_SHORT).show()
+            val userId = auth.currentUser?.uid ?: run {
+                Log.e(tag, "User not authenticated, navigating to login")
+                if (isAdded) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (isAdded) {
+                            findNavController().navigate(R.id.action_settingsFragment_to_loginFragment)
+                        }
+                    }, 100)
+                }
+                return view
             }
 
-        editProfileButton.setOnClickListener {
-            findNavController().navigate(R.id.action_settingsFragment_to_editProfileFragment)
-        }
+            db.collection("users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    if (!isAdded) return@addOnSuccessListener
+                    val user = document.toObject(User::class.java)
+                    notificationsToggle.isChecked = user?.fcmToken != null
+                }
+                .addOnFailureListener { e ->
+                    if (!isAdded) return@addOnFailureListener
+                    Log.e(tag, "Failed to load user data: ${e.message}", e)
+                    Toast.makeText(requireContext(), "Failed to load settings: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
 
-        notificationsToggle.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            editProfileButton.setOnClickListener {
+                if (isAdded) {
+                    findNavController().navigate(R.id.action_settingsFragment_to_editProfileFragment)
+                }
+            }
+
+            notificationsToggle.setOnCheckedChangeListener { _, isChecked ->
+                if (!isAdded) return@setOnCheckedChangeListener
+                if (isChecked) {
+                    FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                        if (!isAdded) return@addOnSuccessListener
+                        db.collection("users").document(userId)
+                            .update("fcmToken", token)
+                            .addOnFailureListener { e ->
+                                if (!isAdded) return@addOnFailureListener
+                                Log.e(tag, "Failed to enable notifications: ${e.message}", e)
+                                Toast.makeText(requireContext(), "Failed to enable notifications", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                } else {
                     db.collection("users").document(userId)
-                        .update("fcmToken", token)
+                        .update("fcmToken", null)
                         .addOnFailureListener { e ->
-                            Log.e(TAG, "Failed to enable notifications: ${e.message}", e)
-                            Toast.makeText(context, "Failed to enable notifications", Toast.LENGTH_SHORT).show()
+                            if (!isAdded) return@addOnFailureListener
+                            Log.e(tag, "Failed to disable notifications: ${e.message}", e)
+                            Toast.makeText(requireContext(), "Failed to disable notifications", Toast.LENGTH_SHORT).show()
                         }
                 }
-            } else {
-                db.collection("users").document(userId)
-                    .update("fcmToken", null)
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "Failed to disable notifications: ${e.message}", e)
-                        Toast.makeText(context, "Failed to disable notifications", Toast.LENGTH_SHORT).show()
-                    }
             }
-        }
 
-        logoutButton.setOnClickListener {
-            auth.signOut()
-            findNavController().navigate(R.id.action_settingsFragment_to_loginFragment)
+            logoutButton.setOnClickListener {
+                if (isAdded) {
+                    auth.signOut()
+                    findNavController().navigate(R.id.action_settingsFragment_to_loginFragment)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "SettingsFragment crashed: ${e.message}", e)
+            if (isAdded) {
+                Toast.makeText(requireContext(), "Error loading settings", Toast.LENGTH_SHORT).show()
+            }
         }
 
         return view
@@ -1192,4 +1303,3 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .update("fcmToken", token)
     }
 }
-

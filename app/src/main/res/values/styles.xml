@@ -1,19 +1,57 @@
-<!-- res/values/styles.xml -->
 <resources>
-    <!-- Button Style -->
-    <style name="Widget.Tutoringapp.Button" parent="Widget.MaterialComponents.Button">
-        <item name="android:textAppearance">@style/TextAppearance.Tutoringapp.Button</item>
-        <item name="backgroundTint">?attr/colorPrimary</item>
-        <item name="android:textColor">?attr/colorOnPrimary</item>
-        <item name="cornerRadius">8dp</item>
-    </style>
-
-    <!-- Button Text Appearance -->
+    <!-- Base Text Appearance for Buttons -->
     <style name="TextAppearance.Tutoringapp.Button" parent="TextAppearance.MaterialComponents.Button">
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.01</item>
         <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
     </style>
+
+    <!-- Primary Button Style -->
+    <style name="Widget.Tutoringapp.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textAppearance">@style/TextAppearance.Tutoringapp.Button</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Secondary Button Style -->
+    <style name="Widget.Tutoringapp.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAppearance">@style/TextAppearance.Tutoringapp.Button</item>
+        <item name="strokeColor">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Rating Bar Style -->
+    <style name="RatingBar" parent="Widget.AppCompat.RatingBar">
+        <item name="colorControlNormal">@color/rating_unselected</item>
+        <item name="colorControlActivated">@color/rating_selected</item>
+        <item name="android:numStars">5</item>
+        <item name="android:stepSize">1</item>
+        <item name="android:rating">3</item>
+        <item name="android:progressTint">@color/rating_selected</item>
+    </style>
+
+    <!-- Rating Bar Small Style -->
+    <style name="RatingBar.Small" parent="RatingBar">
+        <item name="android:layout_height">24dp</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+
+    <!-- Add to your existing styles.xml -->
+    <style name="TextAppearance.Tutoringapp.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.Tutoringapp.Error" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
 </resources>

@@ -42,6 +42,7 @@ androidx-lifecycle-common = { group = "androidx.lifecycle", name = "lifecycle-co
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-cardview = { group = "androidx.cardview", name = "cardview", version = "1.0.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

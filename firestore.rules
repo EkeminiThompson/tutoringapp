@@ -15,10 +15,7 @@ service cloud.firestore {
 
       // Subcollection: messages - relaxed for debugging
       match /messages/{messageId} {
-        allow read: if request.auth != null &&
-                    exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                    (request.auth.uid in split(chatId, "_"));
-        allow write: if true; // Temporarily allow all writes to debug
+        allow read, write: if true; // Temporarily allow all reads and writes to debug
       }
     }
 

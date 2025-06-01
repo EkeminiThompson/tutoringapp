@@ -1,35 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.button.MaterialButton
+    <!-- Edit Profile Button -->
+    <Button
         android:id="@+id/editProfileButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/edit_profile" />
 
+    <!-- Notifications Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical">
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/notifications"
             android:textSize="16sp" />
+
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/notificationsToggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
+    <!-- Logout Button -->
+    <Button
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
